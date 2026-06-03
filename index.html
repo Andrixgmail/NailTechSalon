@@ -683,7 +683,19 @@
         item.className = 'gallery-item';
         item.dataset.src = src;
         item.innerHTML = `
-          <img src="${src}" alt="${label} ${i}" loading="lazy" onerror="this.parentElement.style.display='none'" />
+          <img src="${src}" alt="${label} ${i}" loading="lazy"
+            onerror="
+              console.warn('Image not found:', this.src);
+              // Try lowercase folder as fallback
+              if (!this._triedLower) {
+                this._triedLower = true;
+                const parts = this.src.split('/');
+                parts[parts.length - 2] = parts[parts.length - 2].toLowerCase();
+                this.src = parts.join('/');
+              } else {
+                this.parentElement.style.display = 'none';
+              }
+            " />
           <div class="overlay"><span class="overlay-text">${label} ${i}</span></div>
         `;
         item.addEventListener('click', () => openLightbox(gridId, i - 1));
