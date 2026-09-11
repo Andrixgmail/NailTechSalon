@@ -678,24 +678,13 @@
     function buildGrid(gridId, folder, prefix, count, label) {
       const grid = document.getElementById(gridId);
       for (let i = 1; i <= count; i++) {
-        const src = `images/${folder}/${prefix}${i}.jpg`;
+        const src = `Images/${folder}/${prefix}${i}.jpg`;
         const item = document.createElement('div');
         item.className = 'gallery-item';
         item.dataset.src = src;
         item.innerHTML = `
           <img src="${src}" alt="${label} ${i}" loading="lazy"
-            onerror="
-              console.warn('Image not found:', this.src);
-              // Try lowercase folder as fallback
-              if (!this._triedLower) {
-                this._triedLower = true;
-                const parts = this.src.split('/');
-                parts[parts.length - 2] = parts[parts.length - 2].toLowerCase();
-                this.src = parts.join('/');
-              } else {
-                this.parentElement.style.display = 'none';
-              }
-            " />
+            onerror="this.parentElement.style.display='none'" />
           <div class="overlay"><span class="overlay-text">${label} ${i}</span></div>
         `;
         item.addEventListener('click', () => openLightbox(gridId, i - 1));
@@ -703,9 +692,28 @@
       }
     }
 
-    buildGrid('manicure-grid', 'Manicure', 'Mani', 9, 'Manicure');
-    buildGrid('pedicure-grid', 'Pedicure', 'Pedi', 9, 'Pedicure');
-    buildGrid('combo-grid', 'Combo', 'combo', 11, 'Combo');
+    buildGrid('manicure-grid', 'Manicure', 'mani', 11, 'Manicure');
+    buildGrid('combo-grid',    'Combo',    'combo', 9, 'Combo');
+
+    // Pedicure has mixed casing: Pedi1,2,4-9 are capital P; pedi3 is lowercase
+    // Build them individually to handle exact filenames
+    (function() {
+      const grid = document.getElementById('pedicure-grid');
+      const files = [
+        'Pedi1.jpg','Pedi2.jpg','pedi3.jpg','Pedi4.jpg',
+        'Pedi5.jpg','Pedi6.jpg','Pedi7.jpg','Pedi8.jpg','Pedi9.jpg'
+      ];
+      files.forEach(function(filename, idx) {
+        const src = 'Images/Pedicure/' + filename;
+        const item = document.createElement('div');
+        item.className = 'gallery-item';
+        item.dataset.src = src;
+        item.innerHTML = '<img src="' + src + '" alt="Pedicure ' + (idx+1) + '" loading="lazy" onerror="this.parentElement.style.display=\'none\'" />'
+          + '<div class="overlay"><span class="overlay-text">Pedicure ' + (idx+1) + '</span></div>';
+        item.addEventListener('click', (function(i){ return function(){ openLightbox('pedicure-grid', i); }; })(idx));
+        grid.appendChild(item);
+      });
+    })();
 
     /* ── TABS ── */
     function switchTab(tab) {
